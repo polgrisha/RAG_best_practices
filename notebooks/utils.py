@@ -2,7 +2,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import torch
 
 
-def load_llama(model_name):    
+def load_llama(model_name, quantize=True):    
     # quantization_config reduces memory usage to fit on consumer GPUs (Colab T4, etc.)
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -12,11 +12,17 @@ def load_llama(model_name):
 
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            quantization_config=bnb_config,
-            device_map="auto"
-        )
+        if quantize:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                quantization_config=bnb_config,
+                device_map="auto"
+            )
+        else:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                device_map="auto"
+            )
     except OSError as e:
         print("\nERROR: Could not load model. Did you set your HF_TOKEN and accept the license on Hugging Face?")
         raise e
